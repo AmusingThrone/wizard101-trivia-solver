@@ -23,6 +23,7 @@ DELAY = 10
 DEBUG = ""
 HEADLESS = ""
 
+
 def log(message, type="log"):
 	if type == "log":
 		print("[%] " + message)
@@ -35,7 +36,7 @@ def log(message, type="log"):
 def get_credentials():
 	username = input("Username: ")
 	password = getpass.getpass("Password: ")
-	
+
 	return username, password
 
 
@@ -60,14 +61,16 @@ def login(username, password, browser):
 
 def get_trivias(browser):
 	browser.get(FREEKI_GAMES_WIZARD_101_TRIVIA)
-	trivias_elements = browser.find_elements_by_xpath('//div[@class="gamevert_3column"]/ul/li')
-	log("Gathering trivias.")	
+	trivias_elements = browser.find_elements_by_xpath(
+		'//div[@class="gamevert_3column"]/ul/li')
+	log("Gathering trivias.")
 	trivias = []
 	for trivia in trivias_elements:
 		if trivia.get_attribute("class") == "notake":
 			pass
 		else:
-			trivias.append([trivia.find_element(By.XPATH, './/div[@class="gamename"]').text, trivia.find_element(By.XPATH, './/div[@class="thumb"]/a').get_attribute('href')])
+			trivias.append([trivia.find_element(By.XPATH, './/div[@class="gamename"]').text,
+                            trivia.find_element(By.XPATH, './/div[@class="thumb"]/a').get_attribute('href')])
 
 	log("Found {} possible trivias.".format(len(trivias)))
 
@@ -92,14 +95,18 @@ def solve_trivias(trivias, browser):
 			log("Attempting to solve \"{}\".".format(trivia[0]))
 
 			for x in range(12):
-				quizContainer = wait.until(EC.element_to_be_clickable((By.ID, 'quizContainer')))
-				question = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class="quizQuestion"]'))).text.strip()
-				submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'nextQuestion')))
-				answers_elements = browser.find_elements_by_xpath('//span[@class="answerText"]')
+				quizContainer = wait.until(
+					EC.element_to_be_clickable((By.ID, 'quizContainer')))
+				question = wait.until(EC.element_to_be_clickable(
+					(By.XPATH, '//div[@class="quizQuestion"]'))).text.strip()
+				submit_button = wait.until(
+					EC.element_to_be_clickable((By.ID, 'nextQuestion')))
+				answers_elements = browser.find_elements_by_xpath(
+					'//span[@class="answerText"]')
 				answers = []
 				for answer in answers_elements:
 					answers.append(answer.get_attribute("innerHTML").strip())
-				
+
 				if question in trivia_answers:
 					if trivia_answers[question] in answers:
 						text_element = answers_elements[answers.index(trivia_answers[question])]
@@ -107,15 +114,18 @@ def solve_trivias(trivias, browser):
 						submit_button.click()
 					else:
 						log("Guessing on question (could not find answer): \"{}\"".format(question), "error")
-						log("Answer Choices: 1. \"{}\" 2. \"{}\" 3. \"{}\" 4. \"{}\"".format(answers[0], answers[1], answers[2], answers[3]), "error")
-						guess = difflib.get_close_matches(trivia_answers[question], answers, 1)[0]
+						log("Answer Choices: 1. \"{}\" 2. \"{}\" 3. \"{}\" 4. \"{}\"".format(
+							answers[0], answers[1], answers[2], answers[3]), "error")
+						guess = difflib.get_close_matches(
+							trivia_answers[question], answers, 1)[0]
 						log("Selecting answer: \"{}\"".format(guess), "error")
 						text_element = answers_elements[answers.index(guess)]
 						text_element.find_element_by_xpath('../span[@class="answerBox"]').click()
 						submit_button.click()
 				else:
 					log("Guessing on question (no answer): \"{}\"".format(question), "error")
-					log("Answer Choices: 1. \"{}\" 2. \"{}\" 3. \"{}\" 4. \"{}\"".format(answers[0], answers[1], answers[2], answers[3]), "error")
+					log("Answer Choices: 1. \"{}\" 2. \"{}\" 3. \"{}\" 4. \"{}\"".format(
+						answers[0], answers[1], answers[2], answers[3]), "error")
 					text_element = random.choice(answers_elements)
 					text_element.find_element_by_xpath('../span[@class="answerBox"]').click()
 					submit_button.click()
@@ -142,7 +152,8 @@ def bot(browser):
 def main():
 	try:
 		chrome_options = Options()
-		chrome_options.add_argument("--headless") if DEBUG or HEADLESS else chrome_options.add_argument("--start-maximized")
+		chrome_options.add_argument(
+			"--headless") if DEBUG or HEADLESS else chrome_options.add_argument("--start-maximized")
 		browser = webdriver.Chrome(options=chrome_options)
 		bot(browser)
 	except Exception as e:
